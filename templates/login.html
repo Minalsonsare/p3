@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login - Protomatic</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #f4f6f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .logo {
+      margin-bottom: 1.5rem;
+    }
+    .login-box {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+    .login-box h1 {
+      color: #001f3f;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .login-button {
+      display: block;
+      width: 100%;
+      background-color: #00eaff;
+      color: #001f3f;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 0.75rem 1.2rem;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: background-color 0.3s ease;
+      text-decoration: none;
+    }
+    .login-button:hover {
+      background-color: #00b8cc;
+      color: #fff;
+    }
+    .separator {
+      margin: 1.5rem 0;
+      color: #999;
+      font-size: 0.9rem;
+    }
+    @media (max-width: 480px) {
+      .login-box {
+        padding: 2rem 1.5rem;
+      }
+      .login-box h1 {
+        font-size: 1.6rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">
+    {# Use url_for to correctly link to static files #}
+    <img src="{{ url_for('static', filename='Group 1000008859.png') }}" alt="Protomatic Logo" height="70" />
+  </div>
+
+  <div class="login-box">
+    <h1>Login</h1>
+    {# Update href to point to the Flask dashboard route #}
+    <a href="{{ url_for('dashboard') }}" class="login-button">Login as PO</a>
+    <div class="separator">OR</div>
+    {# Update href to point to the Flask dashboard route #}
+    <a href="{{ url_for('dashboard') }}" class="login-button">Login as ATS</a>
+  </div>
+</body>
+</html>
