@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login - Protomatic</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"/>
+   <!-- Add Bootstrap CSS for Flash Messages Styling -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     * {
       box-sizing: border-box;
@@ -38,6 +40,22 @@
       font-size: 2rem;
       margin-bottom: 1.5rem;
     }
+    .login-form label {
+        display: block;
+        text-align: left;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+        color: #555;
+    }
+     .login-form input[type="text"],
+     .login-form input[type="password"] {
+        width: 100%;
+        padding: 0.75rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        font-size: 1rem;
+     }
     .login-button {
       display: block;
       width: 100%;
@@ -62,6 +80,10 @@
       color: #999;
       font-size: 0.9rem;
     }
+     .flash-messages {
+         margin-bottom: 1.5rem;
+         text-align: left;
+     }
     @media (max-width: 480px) {
       .login-box {
         padding: 2rem 1.5rem;
@@ -74,17 +96,53 @@
 </head>
 <body>
   <div class="logo">
-    {# Use url_for to correctly link to static files #}
     <img src="{{ url_for('static', filename='Group 1000008859.png') }}" alt="Protomatic Logo" height="70" />
   </div>
 
   <div class="login-box">
     <h1>Login</h1>
-    {# Update href to point to the Flask dashboard route #}
+
+    {# Display Flash Messages #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+
+    {# Login Form #}
+    <form method="POST" action="{{ url_for('login_page') }}" class="login-form">
+        <div>
+            <label for="username">User ID:</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+         <button type="submit" class="login-button">Login</button>
+    </form>
+
+
+    {# Removed PO/ATS direct links as we now use a single login form #}
+    {#
+    <div class="separator">OR</div>
     <a href="{{ url_for('dashboard') }}" class="login-button">Login as PO</a>
     <div class="separator">OR</div>
-    {# Update href to point to the Flask dashboard route #}
     <a href="{{ url_for('dashboard') }}" class="login-button">Login as ATS</a>
+    #}
+
   </div>
+
+   <!-- Bootstrap Bundle with Popper (Needed for Flash Messages dismiss) -->
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

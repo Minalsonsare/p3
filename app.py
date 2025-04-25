@@ -1,38 +1,54 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from pdfminer.high_level import extract_text as pdf_extract_text
 from docx import Document as DocxDocument
 import os
 import requests
 import re
+import secrets # Import secrets for generating a secure key
 
 # Ensure temp directory exists locally when app starts
-# Moved this outside the if __name__ == '__main__': block for better compatibility
-# with production WSGI servers like gunicorn
 os.makedirs(os.path.join(os.path.dirname(__file__), 'temp'), exist_ok=True)
 
-
 app = Flask(__name__)
+# Set a secure secret key for session management
+# In production, use a value from environment variables or a secret file
+app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(16)) # Use env var first, fallback to random for local test
+
 
 # OCR Space API Configuration (Remember to set your API key as environment variable in production!)
 OCR_SPACE_API_URL = "https://api.ocr.space/parse/image"
-# Safely get API key from environment variable, with a hardcoded fallback ONLY for local testing
 OCR_SPACE_API_KEY = os.environ.get('OCR_SPACE_API_KEY')
-if not OCR_SPACE_API_KEY:
+if not OCR_SPACE_API_KEY or OCR_SPACE_API_KEY == "K87955728688957":
     # Replace with your actual key for local testing if not using env vars
-    OCR_SPACE_API_KEY = "K87955728688957"
-    print("Warning: OCR Space API key not found in environment variables.")
+    # Or better, load from a local .env file using python-dotenv
+    OCR_SPACE_API_KEY = "K87955728688957" # Use a placeholder you KNOW isn't your real key in code
+    print("Warning: OCR Space API key not found in environment variables or is the default placeholder.")
+    if app.debug: # Only print detailed warning in debug mode
+        print("Please set the OCR_SPACE_API_KEY environment variable.")
 
-# --- Add this Context Processor ---
+
+# --- Dummy Users (Replace with a real database/auth system in production) ---
+DUMMY_USERS = {
+    "sushil": "Sushila@p1",
+    "admin": "admin@a123",
+    "user": "pass@a123"
+}
+
+# ---------------------------------------------------------------------------
+
+
+# --- Context Processor (Keep as is) ---
 @app.context_processor
 def inject_utilities():
     """Injects utility functions into the template context."""
-    # We need get_database_data available in the index.html template for displaying db data
     return dict(get_database_data=get_database_data)
 # ----------------------------------
 
 # --- OCR and Data Extraction Functions (Keep as is) ---
 def ocr_image_via_api(image_path):
     """Performs OCR on an image using OCR Space API."""
+    if OCR_SPACE_API_KEY == "YOUR_OCR_SPACE_API_KEY_HERE":
+         return "Error: OCR Space API Key not configured."
     try:
         with open(image_path, 'rb') as f:
             image_data = f.read()
@@ -94,12 +110,12 @@ def extract_text_from_file(file_path, filename):
     else:
         return "Unsupported file format."
 
-# --- Data Extraction and Comparison Functions ---
+# --- Data Extraction and Comparison Functions (Keep as is) ---
 
 def extract_structured_data(text):
     """Extracts specific structured data fields from text using regex."""
     data = {}
-    # Define the fields we want to extract (Skills removed)
+    # Define the fields we want to extract
     field_names = ["Sr no.", "Name", "City", "Age", "Country", "Address"]
     # Initialize all expected fields with None
     for field in field_names:
@@ -117,89 +133,20 @@ def extract_structured_data(text):
                 break # Found this field, move to the next field_name
     return data
 
-# Dummy database (Skills removed from entries)
+# Dummy database (Keep as is)
 dummy_database = {
-    "S001": {
-        "Sr no.": "S001",
-        "Name": "Hemanshu Kasar",
-        "City": "Nagpur",
-        "Age": "23",
-        "Country": "India",
-        "Address": "7, gurudeo nagar"
-    },
-    "S002": {
-        "Sr no.": "S002",
-        "Name": "John Doe",
-        "City": "New York",
-        "Age": "30",
-        "Country": "USA",
-        "Address": "123 Main St"
-    },
-    "S003": {
-        "Sr no.": "S003",
-        "Name": "Sarah Johnson",
-        "City": "London",
-        "Age": "27",
-        "Country": "UK",
-        "Address": "45 Oxford Street"
-    },
-    "S004": {
-        "Sr no.": "S004",
-        "Name": "Raj Patel",
-        "City": "Mumbai",
-        "Age": "32",
-        "Country": "India",
-        "Address": "201, Sea View Apartments"
-    },
-    "S005": {
-        "Sr no.": "S005",
-        "Name": "Maria Garcia",
-        "City": "Barcelona",
-        "Age": "29",
-        "Country": "Spain",
-        "Address": "Carrer de Mallorca, 15"
-    },
-    "S006": {
-        "Sr no.": "S006",
-        "Name": "Akira Tanaka",
-        "City": "Tokyo",
-        "Age": "35",
-        "Country": "Japan",
-        "Address": "2-1-3 Shibuya"
-    },
-    "S007": {
-        "Sr no.": "S007",
-        "Name": "Chen Wei",
-        "City": "Shanghai",
-        "Age": "26",
-        "Country": "China",
-        "Address": "88 Nanjing Road"
-    },
-    "S008": {
-        "Sr no.": "S008",
-        "Name": "Lucas Silva",
-        "City": "São Paulo",
-        "Age": "31",
-        "Country": "Brazil",
-        "Address": "Rua Augusta, 1200"
-    },
-    "S009": {
-        "Sr no.": "S009",
-        "Name": "Olivia Miller",
-        "City": "Sydney",
-        "Age": "28",
-        "Country": "Australia",
-        "Address": "42 Bondi Beach Road"
-    },
-    "S010": {
-        "Sr no.": "S010",
-        "Name": "Ahmed Hassan",
-        "City": "Cairo",
-        "Age": "33",
-        "Country": "Egypt",
-        "Address": "17 Al Tahrir Square"
-    }
+    "S001": { "Sr no.": "S001", "Name": "Hemanshu Kasar", "City": "Nagpur", "Age": "23", "Country": "India", "Address": "7, gurudeo nagar" },
+    "S002": { "Sr no.": "S002", "Name": "John Doe", "City": "New York", "Age": "30", "Country": "USA", "Address": "123 Main St" },
+    "S003": { "Sr no.": "S003", "Name": "Sarah Johnson", "City": "London", "Age": "27", "Country": "UK", "Address": "45 Oxford Street" },
+    "S004": { "Sr no.": "S004", "Name": "Raj Patel", "City": "Mumbai", "Age": "32", "Country": "India", "Address": "201, Sea View Apartments" },
+    "S005": { "Sr no.": "S005", "Name": "Maria Garcia", "City": "Barcelona", "Age": "29", "Country": "Spain", "Address": "Carrer de Mallorca, 15" },
+    "S006": { "Sr no.": "S006", "Name": "Akira Tanaka", "City": "Tokyo", "Age": "35", "Country": "Japan", "Address": "2-1-3 Shibuya" },
+    "S007": { "Sr no.": "S007", "Name": "Chen Wei", "City": "Shanghai", "Age": "26", "Country": "China", "Address": "88 Nanjing Road" },
+    "S008": { "Sr no.": "S008", "Name": "Lucas Silva", "City": "São Paulo", "Age": "31", "Country": "Brazil", "Address": "Rua Augusta, 1200" },
+    "S009": { "Sr no.": "S009", "Name": "Olivia Miller", "City": "Sydney", "Age": "28", "Country": "Australia", "Address": "42 Bondi Beach Road" },
+    "S010": { "Sr no.": "S010", "Name": "Ahmed Hassan", "City": "Cairo", "Age": "33", "Country": "Egypt", "Address": "17 Al Tahrir Square" }
 }
+
 
 def get_database_data(sr_no):
     """Fetches data from the dummy database based on Sr no."""
@@ -212,17 +159,13 @@ def compare_data(extracted_data, db_data):
 
     matched_fields = 0
     mismatched_fields = {}
-    # Use the keys from db_data to ensure comparison against the expected fields
-    # This list now implicitly excludes 'Skills' because dummy_database doesn't have it
     total_fields = len(db_data)
 
     for key, db_value in db_data.items():
         extracted_value = extracted_data.get(key)
 
-        # Case-insensitive comparison for non-None values
         if extracted_value is not None and db_value is not None and str(extracted_value).lower() == str(db_value).lower():
              matched_fields += 1
-        # If values are different, or extracted_value is None, consider it a mismatch
         elif extracted_value != db_value:
              mismatched_fields[key] = {"db_value": db_value, "extracted_value": extracted_value}
 
@@ -230,104 +173,137 @@ def compare_data(extracted_data, db_data):
     return accuracy, mismatched_fields, None
 
 
-# --- NEW ROUTE FOR LANDING PAGE (Template1.html) ---
+# --- Route for Landing Page ---
 @app.route('/', methods=['GET'])
 def landing_page():
     """Renders the main landing page (Template1.html)."""
+    # If user is already logged in, redirect them to the dashboard
+    if 'logged_in' in session and session['logged_in']:
+        return redirect(url_for('app_dashboard'))
     return render_template('Template1.html')
 
-# --- NEW ROUTE FOR LOGIN PAGE (login.html) ---
-@app.route('/login', methods=['GET'])
-def login_page():
-    """Renders the login page (login.html)."""
-    return render_template('login.html')
 
-# --- RENAME OCR/DASHBOARD ROUTE (Keep as is, except for route name) ---
-@app.route('/dashboard', methods=['GET', 'POST'])
-def dashboard():
-    """Handles file uploads and renders the OCR/comparison results (index.html)."""
-    results = {}
+# --- Route for Login Page ---
+@app.route('/login', methods=['GET', 'POST'])
+def login_page():
+    """Renders the login page or handles login submission."""
+    # If user is already logged in, redirect them to the dashboard
+    if 'logged_in' in session and session['logged_in']:
+        return redirect(url_for('app_dashboard'))
 
     if request.method == 'POST':
-        if 'image' not in request.files:
-            results["Overall Error"] = {"error": "No file part in the request."}
-            # Stay on the dashboard page, showing the error
-            return render_template('index.html', results=results)
+        username = request.form.get('username')
+        password = request.form.get('password')
 
-        image_files = request.files.getlist('image')
+        if username in DUMMY_USERS and DUMMY_USERS[username] == password:
+            session['logged_in'] = True
+            # Optionally store username in session: session['username'] = username
+            flash('Login successful!', 'success') # Use flash messages for feedback
+            return redirect(url_for('app_dashboard'))
+        else:
+            flash('Invalid User ID or Password', 'danger') # Use flash messages for feedback
+            # Stay on the login page, flash message will be displayed by template
+            return render_template('login.html') # Re-render login page on failure
 
-        if not image_files or all(f.filename == '' for f in image_files):
-             results["Overall Error"] = {"error": "No files selected."}
-             # Stay on the dashboard page, showing the error
-             return render_template('index.html', results=results)
-
-
-        for image_file in image_files:
-            filename = image_file.filename
-            if filename == '':
-                 results[f"Skipped empty file input ({len(results) + 1})"] = {"error": "Skipped empty file input."}
-                 continue
-
-            if image_file:
-                # Generate a temporary file path within the 'temp' directory
-                temp_dir = os.path.join(app.root_path, 'temp')
-                # Using original filename and adding unique components to avoid collision
-                temp_filename = f"{os.getpid()}_{os.urandom(4).hex()}_{filename}"
-                temp_file_path = os.path.join(temp_dir, temp_filename)
+    # Render login form for GET requests
+    return render_template('login.html')
 
 
-                try:
-                    image_file.save(temp_file_path)
-                    extracted_text = extract_text_from_file(temp_file_path, filename)
+# --- Route for Dashboard (Requires Login) ---
+@app.route('/app', methods=['GET', 'POST'])
+def app_dashboard():
+    """Handles file uploads and renders the OCR/comparison results (app_dashboard.html)."""
+    # Protect this route - redirect to login if not logged in
+    if 'logged_in' not in session or not session['logged_in']:
+        flash('Please login to access the dashboard.', 'warning')
+        return redirect(url_for('login_page'))
 
-                    structured_data = {}
-                    accuracy = None
-                    mismatched_fields = {}
-                    comparison_error = None
+    results = {}
 
-                    if extracted_text and not extracted_text.startswith("Error"):
-                        # Apply structured data extraction and comparison to supported types
-                        file_extension = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
-                        if file_extension in ['docx', 'pdf', 'png', 'jpg', 'jpeg', 'bmp', 'gif', 'tiff']:
-                             structured_data = extract_structured_data(extracted_text)
-                             sr_no_value = structured_data.get("Sr no.")
-                             if sr_no_value:
-                                 db_data = get_database_data(sr_no_value)
-                                 # Compare only the fields present in the fetched db_data
-                                 accuracy, mismatched_fields, comparison_error = compare_data(structured_data, db_data)
-                             else:
-                                 comparison_error = "Sr no. not found in extracted data, cannot compare."
-                        # Removed the 'else' block that set comparison_error for unsupported types for comparison
-                        # If a file type is processed but not compared for structured data,
-                        # accuracy and comparison_error will remain None, and the template handles this.
+    # Initialize active tab for template. Default to 'po-verification'
+    active_tab = request.form.get('active_tab', 'po-verification')
 
 
-                    results[filename] = {
-                        "extracted_text": extracted_text,
-                        "structured_data": structured_data,
-                        "accuracy": accuracy,
-                        "mismatched_fields": mismatched_fields,
-                        "comparison_error": comparison_error
-                    }
+    if request.method == 'POST':
+        # --- File Upload and Processing Logic (Only if submitting from PO Verification tab) ---
+        # You might want a hidden input in the form to indicate which tab the submission came from
+        # For now, we assume file uploads only happen in PO Verification tab
+        if 'image' in request.files:
+             image_files = request.files.getlist('image')
 
-                except Exception as e:
-                     # Catch any unexpected errors during file processing
-                     results[filename] = {"error": f"Processing failed for {filename}: {e}"}
+             if not image_files or all(f.filename == '' for f in image_files):
+                  results["Overall Error"] = {"error": "No files selected."}
+             else:
+                for image_file in image_files:
+                    filename = image_file.filename
+                    if filename == '':
+                         results[f"Skipped empty file input ({len(results) + 1})"] = {"error": "Skipped empty file input."}
+                         continue
 
-                finally:
-                     # Clean up the temporary file
-                     if os.path.exists(temp_file_path):
-                         os.remove(temp_file_path)
+                    if image_file:
+                        temp_dir = os.path.join(app.root_path, 'temp')
+                        temp_filename = f"{os.getpid()}_{os.urandom(4).hex()}_{filename}"
+                        temp_file_path = os.path.join(temp_dir, temp_filename)
+
+                        try:
+                            image_file.save(temp_file_path)
+                            extracted_text = extract_text_from_file(temp_file_path, filename)
+
+                            structured_data = {}
+                            accuracy = None
+                            mismatched_fields = {}
+                            comparison_error = None
+
+                            if extracted_text and not extracted_text.startswith("Error"):
+                                file_extension = filename.rsplit('.', 1)[-1].lower() if '.' in filename else ''
+                                if file_extension in ['docx', 'pdf', 'png', 'jpg', 'jpeg', 'bmp', 'gif', 'tiff']:
+                                     structured_data = extract_structured_data(extracted_text)
+                                     sr_no_value = structured_data.get("Sr no.")
+                                     if sr_no_value:
+                                         db_data = get_database_data(sr_no_value)
+                                         accuracy, mismatched_fields, comparison_error = compare_data(structured_data, db_data)
+                                     else:
+                                         comparison_error = "Sr no. not found in extracted data, cannot compare."
+
+                            results[filename] = {
+                                "extracted_text": extracted_text,
+                                "structured_data": structured_data,
+                                "accuracy": accuracy,
+                                "mismatched_fields": mismatched_fields,
+                                "comparison_error": comparison_error
+                            }
+
+                        except Exception as e:
+                             results[filename] = {"error": f"Processing failed for {filename}: {e}"}
+
+                        finally:
+                             if os.path.exists(temp_file_path):
+                                 os.remove(temp_file_path)
+
+        # After a POST request (file upload), ensure we are back on the PO Verification tab
+        active_tab = 'po-verification'
 
 
-    # For GET requests or after POST processing, render the index.html template
-    return render_template('index.html', results=results) # Pass results even on GET, it will be empty
+    # For GET requests or after POST processing, render the dashboard template
+    # Pass results and active_tab to the template
+    return render_template('app_dashboard.html', results=results, active_tab=active_tab)
+
+
+# --- Route for Logout ---
+@app.route('/logout')
+def logout():
+    """Logs out the user by clearing the session."""
+    session.pop('logged_in', None) # Remove the logged_in key from session
+    # Optionally remove username: session.pop('username', None)
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('landing_page'))
 
 
 if __name__ == '__main__':
-    # Moved temp dir creation outside this block.
-    # Ensure API key is set for local testing if not using env vars
+    # Ensure API key and Secret Key are set for local testing if not using env vars
     if OCR_SPACE_API_KEY == "YOUR_OCR_SPACE_API_KEY_HERE":
         print("Please replace 'YOUR_OCR_SPACE_API_KEY_HERE' with your actual key or set the environment variable.")
+    if os.environ.get('SECRET_KEY') is None and app.secret_key == secrets.token_hex(16):
+         print("Warning: Using a temporary random SECRET_KEY. Set the SECRET_KEY environment variable for production.")
 
     app.run(debug=True)
