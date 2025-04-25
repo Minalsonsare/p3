@@ -29,7 +29,7 @@ if not OCR_SPACE_API_KEY or OCR_SPACE_API_KEY == "K87955728688957":
 
 # --- Dummy Users (Replace with a real database/auth system in production) ---
 DUMMY_USERS = {
-    "sushil": "Sushila@p1",
+    "sushil": "Sushil@ap1",
     "admin": "admin@a123",
     "user": "pass@a123"
 }
