@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Console - Job Card App</title>
+<!-- Bootstrap CSS (CDN) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+<!-- Bootstrap Icons (CDN) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<!-- Google Fonts (Optional - for Roboto) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- Custom Styles (incorporating styles from your UI) -->
+<style>
+    :root {
+        --bs-primary-rgb: 0, 123, 255; /* Standard Bootstrap Blue */
+        --bs-link-color: #0056b3;
+        --bs-link-hover-color: #003d80;
+    }
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Roboto', sans-serif;
+        color: #343a40;
+    }
+    .sidebar {
+        background-color: #ffffff;
+        height: 100vh;
+        padding: 1.5rem 1rem;
+        border-right: 1px solid #dee2e6;
+        position: fixed;
+        width: 240px;
+        overflow-y: auto;
+        box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+        z-index: 1000;
+    }
+    .sidebar .logo { display: block; margin: 0 auto 1.5rem auto; text-align: center; }
+    .sidebar a { display: flex; align-items: center; padding: 0.8rem 1rem; margin-bottom: 0.5rem; color: #495057; text-decoration: none; border-radius: 8px; font-weight: 500; transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out; }
+    .sidebar a:hover { background-color: #e9ecef; color: #007bff; }
+    .sidebar a.active { background-color: #007BFF; color: white; font-weight: bold; box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3); }
+    .sidebar a i { margin-right: 0.8rem; font-size: 1.1rem; width: 20px; text-align: center; transition: transform 0.2s ease; }
+    .sidebar a:hover i { transform: scale(1.1); }
+
+    .dashboard-content { margin-left: 240px; padding: 2rem; }
+    .content-section { padding: 25px; background-color: #ffffff; margin-bottom: 25px; border-radius: 8px; box-shadow: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.075); border: 1px solid #dee2e6; display: none; } /* Hidden by default */
+    .content-section.active { display: block; } /* JS will make active section visible */
+
+    .section-header h2, .content-section h2 { color: #0056b3; margin-bottom: 0.5rem; display: flex; align-items: center; font-weight: 500; font-size: 1.5rem; }
+    .section-header h2 i, .content-section h2 i { margin-right: 0.6rem; color: #007bff; }
+    .section-header hr, .content-section hr { margin-top: 0.5rem; margin-bottom: 1.5rem; border-top: 1px solid #dee2e6; }
+
+    .card { border: 1px solid #e9ecef; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; background-color: #ffffff; overflow: hidden; }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .card h5.card-title { color: #0056b3; font-weight: 500; font-size: 1.1rem; }
+    .card .badge { font-size: 0.7rem; vertical-align: middle; margin-left: 5px; padding: 0.3em 0.5em; font-weight: 500; }
+    .badge.bg-info { background-color: #17a2b8 !important; color: white !important; }
+    .badge.bg-success { background-color: #28a745 !important; color: white !important; }
+
+    .navbar { background-color: #ffffff !important; border-bottom: 1px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.04); /* Removed border-radius */ margin-bottom: 2rem; }
+    .navbar-brand { font-weight: 500; color: #0056b3 !important; }
+
+    /* Style for role simulation buttons */
+    .role-view-selector .btn { font-size: 0.8rem; padding: 0.4rem 0.8rem; display: inline-flex; align-items: center; border-radius: 6px !important; }
+    .role-view-selector .btn i { margin-right: 0.4rem; font-size: 0.9rem; }
+    .role-view-selector .btn-check + .btn-outline-secondary:hover { background-color: #e9ecef; color: #0056b3; }
+    .role-view-selector .btn-check:checked + .btn-outline-secondary { background-color: #6c757d; color: white; border-color: #6c757d; }
+
+    /* Criteria Column styles */
+    .criteria-column { padding-left: 15px; padding-right: 15px; }
+    .criteria-column .column-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #dee2e6; }
+    .criteria-column h3 { font-size: 1.2rem; color: #495057; margin-bottom: 0; display: flex; align-items: center; font-weight: 500; border-bottom: none; }
+    .criteria-column h3 i { margin-right: 0.5rem; font-size: 1.3rem; }
+    .criteria-column .btn-add-criteria { font-size: 0.8rem; padding: 0.35rem 0.7rem; margin-top: 0.5rem; margin-left: auto; }
+    .criteria-column .card .card-body { padding: 1rem; }
+    .criteria-column .card small.text-muted { font-size: 0.8rem; }
+    .criteria-column .card strong { font-weight: 500; }
+    .criteria-column .card .btn-delete-criteria { font-size: 0.8rem; padding: 0.2rem 0.5rem; }
+    .criteria-column .card .btn-edit-criteria { font-size: 0.8rem; padding: 0.2rem 0.5rem; }
+    .criteria-column .card .text-end .btn { opacity: 0.8; transition: opacity 0.2s ease; }
+    .criteria-column .card:hover .text-end .btn { opacity: 1; }
+
+    /* Modal styles */
+    .modal-header { background-color: #e9ecef; border-bottom: 1px solid #dee2e6; padding: 1rem 1.5rem; }
+    .modal-title { color: #343a40; font-weight: 500; }
+    .modal-body { padding: 1.5rem; }
+    .modal-footer { background-color: #f8f9fa; border-top: 1px solid #dee2e6; padding: 0.75rem 1.5rem; }
+    .form-label .text-danger { font-size: 0.9em; vertical-align: super; }
+
+    /* Table Enhancements */
+    .table { border: 1px solid #dee2e6; border-radius: 8px; overflow: hidden; font-size: 0.9rem;}
+    .table thead th { background-color: #f8f9fa; color: #495057; font-weight: 600; border-bottom: 2px solid #dee2e6; white-space: nowrap; }
+    .table tbody tr { border-top: 1px solid #dee2e6; }
+    .table tbody tr:first-child { border-top: none; }
+    .table-hover > tbody > tr:hover { background-color: #eef2f7; }
+    .table .btn-sm i { font-size: 1rem; }
+    .table .btn-outline-secondary { font-size: 0.8rem; padding: 0.2rem 0.5rem; }
+    .table .btn-outline-danger { font-size: 0.8rem; padding: 0.2rem 0.5rem; }
+
+    .text-muted-light { color: #86909c !important; }
+    .user-select-all { user-select: all; } /* For easy password copying */
+    .spinner-border-sm { width: 1rem; height: 1rem; }
+
+    /* Alert styling */
+    .alert { font-size: 0.9rem; }
+
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="logo">
+         <img src="{{ url_for('static', filename='Group 1000008859.png') }}" alt="Logo" height="45"> <!-- Link to static file -->
+    </div>
+    <!-- Use data-target for JS navigation -->
+    <a href="#dashboard" class="nav-link active" data-target="dashboard-section" id="nav-dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+    <a href="#users" class="nav-link" data-target="users-section" id="nav-users"><i class="bi bi-people-fill"></i> Manage Users</a>
+    <a href="#criteria" class="nav-link" data-target="porder-section" id="nav-porder"><i class="bi bi-filter-square-fill"></i> Manage Criteria</a>
+    <!-- Logout Link (Needs endpoint) -->
+    <a href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a>
+</div>
+
+<!-- Main Content Area -->
+<div class="dashboard-content">
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand ms-2" href="#">AI Job Card - Admin Console</a>
+             <span class="navbar-text ms-auto">
+                Welcome, {{ session.get('user_email', 'Admin') }}!
+             </span>
+        </div>
+    </nav>
+
+    <!-- Flash Message Container -->
+    <div id="flash-message-container" class="mb-3">
+        {# Optionally include the partial: {% include '_flash_messages.html' %} #}
+        {# Or just rely on JS to inject messages #}
+         {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% set alert_class = 'alert-' + category if category in ['success', 'danger', 'warning', 'info'] else 'alert-secondary' %}
+                    <div class="alert {{ alert_class }} alert-dismissible fade show" role="alert">
+                        {{ message | safe }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Dashboard Section -->
+    <section id="dashboard-section" class="content-section active">
+         <div class="section-header">
+            <h2><i class="bi bi-speedometer2"></i> Dashboard</h2><hr>
+        </div>
+        <p class="lead text-muted-light mb-4">Overview of system users and validation criteria.</p>
+         <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="card text-center h-100">
+                    <div class="card-body d-flex flex-column justify-content-between p-4">
+                        <div>
+                            <h5 class="card-title mb-3"><i class="bi bi-people-fill me-2"></i> Managed Users</h5>
+                            <p class="card-text display-4 fw-bold text-primary" id="user-count">...</p> <!-- JS will update -->
+                        </div>
+                        <button class="btn btn-outline-primary mt-3" data-target="users-section" data-nav-target="nav-users">Manage Users <i class="bi bi-arrow-right-short"></i></button>
+                    </div>
+                </div>
+            </div>
+             <div class="col-lg-6 mb-4">
+                <div class="card text-center h-100">
+                     <div class="card-body d-flex flex-column justify-content-between p-4">
+                        <div>
+                            <h5 class="card-title mb-3"><i class="bi bi-file-earmark-ruled me-2"></i> Defined Criteria</h5>
+                            <p class="card-text display-4 fw-bold text-primary" id="criteria-count">...</p> <!-- JS will update -->
+                        </div>
+                         <button class="btn btn-outline-primary mt-3" data-target="porder-section" data-nav-target="nav-porder">Manage Criteria <i class="bi bi-arrow-right-short"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- User Management Section -->
+    <section id="users-section" class="content-section">
+        <div class="section-header d-flex justify-content-between align-items-center flex-wrap">
+            <h2><i class="bi bi-people-fill"></i> User Management</h2>
+             <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#createUserModal">
+                <i class="bi bi-plus-circle me-1"></i> Create New User
+            </button>
+        </div>
+         <hr>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th> <!-- Changed from Privileges -->
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="user-table-body">
+                    <!-- JS loads rows here -->
+                    <tr><td colspan="4" class="text-center text-muted py-5"><div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading users...</td></tr>
+                </tbody>
+            </table>
+        </div>
+         <p id="no-users-message" class="text-center text-muted mt-4 py-3 bg-light rounded" style="display: none;"><i class="bi bi-info-circle me-1"></i> No users found. Use the 'Create New User' button to add one.</p>
+    </section>
+
+    <!-- Criteria Management Section -->
+    <section id="porder-section" class="content-section">
+        <div class="section-header">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                 <h2><i class="bi bi-filter-square-fill"></i> Manage Validation Criteria</h2>
+                 <div class="role-view-selector mt-2 mt-md-0">
+                     <span class="me-2 text-muted small">Filter by Type:</span> <!-- Changed label -->
+                     <div class="btn-group shadow-sm" role="group" aria-label="Criteria type filter">
+                        <input type="radio" class="btn-check" name="criteriaFilter" id="filterAll" value="all" autocomplete="off" checked>
+                        <label class="btn btn-outline-secondary" for="filterAll"><i class="bi bi-grid-fill"></i> All</label>
+                        <input type="radio" class="btn-check" name="criteriaFilter" id="filterPO" value="po" autocomplete="off">
+                        <label class="btn btn-outline-secondary" for="filterPO"><i class="bi bi-file-earmark-text"></i> PO Only</label>
+                        <input type="radio" class="btn-check" name="criteriaFilter" id="filterATS" value="ats" autocomplete="off">
+                        <label class="btn btn-outline-secondary" for="filterATS"><i class="bi bi-person-lines-fill"></i> ATS Only</label>
+                    </div>
+                 </div>
+            </div>
+            <hr>
+        </div>
+
+        <div class="row">
+            <!-- PO Criteria Column -->
+            <div class="col-lg-6 criteria-column mb-4 mb-lg-0" id="po-criteria-column">
+                <div class="column-header">
+                    <h3><i class="bi bi-file-earmark-text text-info"></i> PO Criteria</h3>
+                     <button class="btn btn-outline-primary btn-sm btn-add-criteria" data-bs-toggle="modal" data-bs-target="#createPOrderCriteriaModal" data-criteria-type="po">
+                         <i class="bi bi-plus-lg"></i> Add PO
+                     </button>
+                 </div>
+                <div id="po-criteria-list" class="mt-3 list-cards">
+                    <!-- JS loads PO cards here -->
+                    <p class="text-center text-muted py-3 placeholder-glow"><span class="placeholder col-8"></span></p>
+                </div>
+                <p id="no-po-criteria-message" class="text-muted text-center mt-4 p-3 bg-light rounded" style="display: none;"><i class="bi bi-info-circle me-1"></i> No PO criteria defined.</p>
+            </div>
+
+            <!-- ATS Criteria Column -->
+            <div class="col-lg-6 criteria-column" id="ats-criteria-column">
+                 <div class="column-header">
+                    <h3><i class="bi bi-person-lines-fill text-success"></i> ATS Criteria</h3>
+                     <button class="btn btn-outline-success btn-sm btn-add-criteria" data-bs-toggle="modal" data-bs-target="#createPOrderCriteriaModal" data-criteria-type="ats">
+                         <i class="bi bi-plus-lg"></i> Add ATS
+                     </button>
+                </div>
+                <div id="ats-criteria-list" class="mt-3 list-cards">
+                    <!-- JS loads ATS cards here -->
+                     <p class="text-center text-muted py-3 placeholder-glow"><span class="placeholder col-8"></span></p>
+                </div>
+                 <p id="no-ats-criteria-message" class="text-muted text-center mt-4 p-3 bg-light rounded" style="display: none;"><i class="bi bi-info-circle me-1"></i> No ATS criteria defined.</p>
+            </div>
+        </div>
+        <p id="no-criteria-message" class="text-muted text-center mt-4 py-3 bg-light rounded" style="display: none;"><i class="bi bi-info-circle me-1"></i> No criteria defined for the selected filter.</p>
+    </section>
+
+</div> <!-- /dashboard-content -->
+
+<!-- MODALS -->
+
+<!-- Create User Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createUserModalLabel"><i class="bi bi-person-plus-fill me-2"></i> Create New User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger d-none" role="alert" id="user-form-alert"></div> <!-- For API errors -->
+                <form id="createUserForm" novalidate>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="username" required>
+                        <div class="invalid-feedback">Please provide a username.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email address <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="email" required>
+                        <div class="invalid-feedback">Please provide a valid email address.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="password" required>
+                        <div class="invalid-feedback">Please provide a password.</div>
+                        <small class="form-text text-muted">User should change this password after first login.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Assign Role/Privileges <span class="text-danger">*</span></label>
+                        <div id="privilege-feedback" class="text-danger small mb-2 d-none">Please select at least one privilege.</div>
+                        <!-- Map these values to match backend role determination logic -->
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="admin" id="priv-admin" name="userPrivilege">
+                            <label class="form-check-label" for="priv-admin">Admin (Full System Access)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="po-verifier" id="priv-po-verify" name="userPrivilege">
+                            <label class="form-check-label" for="priv-po-verify">PO Verifier (Access to PO Verification)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="ats-verifier" id="priv-ats-verify" name="userPrivilege">
+                            <label class="form-check-label" for="priv-ats-verify">ATS Verifier (Access to ATS Verification)</label>
+                        </div>
+                         <small class="form-text text-muted mt-2">Selecting both PO & ATS Verifier assigns the 'Sub-Admin' role.</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary" form="createUserForm" id="createUserSubmitBtn">
+                    <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
+                    <i class="bi bi-check-circle me-1"></i> Create User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+ <!-- Create/Edit Criteria Modal -->
+<div class="modal fade" id="createPOrderCriteriaModal" tabindex="-1" aria-labelledby="createPOrderCriteriaModalLabel" aria-hidden="true">
+     <div class="modal-dialog modal-dialog-centered">
+         <div class="modal-content">
+             <div class="modal-header">
+                 <h5 class="modal-title" id="createPOrderCriteriaModalLabel">Add New Validation Criteria</h5>
+                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+             </div>
+             <div class="modal-body">
+                 <div class="alert alert-danger d-none" role="alert" id="criteria-form-alert"></div>
+                 <form id="createPOrderCriteriaForm" novalidate>
+                    <input type="hidden" id="criteriaTypeInput"> <!-- To store 'po' or 'ats' -->
+                    <div class="mb-3">
+                         <label for="criteriaName" class="form-label">Criteria Name <span class="text-danger">*</span></label>
+                         <input type="text" class="form-control" id="criteriaName" placeholder="e.g., Validate PO Number Format" required>
+                         <div class="invalid-feedback">Please provide a name.</div>
+                     </div>
+                     <div class="mb-3">
+                         <label for="fieldToExtract" class="form-label">Field Name <span class="text-danger">*</span></label>
+                         <input type="text" class="form-control" id="fieldToExtract" placeholder="e.g., PO Number, Vendor Name, Skills" required>
+                         <div class="invalid-feedback">Please specify the target field name.</div>
+                     </div>
+                     <div class="mb-3">
+                         <label for="validationRule" class="form-label">Validation Rule / Description <span class="text-danger">*</span></label>
+                         <textarea class="form-control" id="validationRule" rows="3" placeholder="Describe the validation logic or pattern..." required></textarea>
+                         <div class="invalid-feedback">Please describe the rule.</div>
+                     </div>
+                     <div class="mb-3">
+                         <label for="aiConfidence" class="form-label">Confidence Threshold (%) <span class="text-danger">*</span></label>
+                         <input type="number" class="form-control" id="aiConfidence" min="0" max="100" value="90" required>
+                         <div class="form-text">Minimum confidence needed for this rule to pass (0-100).</div>
+                         <div class="invalid-feedback">Please enter a number between 0 and 100.</div>
+                     </div>
+                 </form>
+             </div>
+             <div class="modal-footer">
+                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                 <button type="submit" class="btn btn-primary" form="createPOrderCriteriaForm" id="saveCriteriaSubmitBtn">
+                    <span class="spinner-border spinner-border-sm d-none me-1" role="status" aria-hidden="true"></span>
+                    <i class="bi bi-check-circle me-1"></i> Save Criteria
+                 </button>
+             </div>
+         </div>
+     </div>
+</div>
+
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+
+<!-- Custom Functional JavaScript -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Get Elements ---
+        const sidebarLinks = document.querySelectorAll('.sidebar a[data-target]');
+        const contentSections = document.querySelectorAll('.dashboard-content > .content-section');
+        const userTableBody = document.getElementById('user-table-body');
+        const noUsersMessage = document.getElementById('no-users-message');
+        const poCriteriaList = document.getElementById('po-criteria-list');
+        const atsCriteriaList = document.getElementById('ats-criteria-list');
+        const noPoCriteriaMessage = document.getElementById('no-po-criteria-message');
+        const noAtsCriteriaMessage = document.getElementById('no-ats-criteria-message');
+        const noCriteriaMessage = document.getElementById('no-criteria-message'); // For filtered view
+        const createUserForm = document.getElementById('createUserForm');
+        const createPOrderCriteriaForm = document.getElementById('createPOrderCriteriaForm');
+        const userFormAlert = document.getElementById('user-form-alert');
+        const criteriaFormAlert = document.getElementById('criteria-form-alert');
+        const privilegeFeedback = document.getElementById('privilege-feedback');
+        const criteriaTypeFilterButtons = document.querySelectorAll('input[name="criteriaFilter"]');
+        const addCriteriaButtons = document.querySelectorAll('.btn-add-criteria');
+        const flashContainer = document.getElementById('flash-message-container');
+        const userCountEl = document.getElementById('user-count');
+        const criteriaCountEl = document.getElementById('criteria-count');
+        const createUserSubmitBtn = document.getElementById('createUserSubmitBtn');
+        const saveCriteriaSubmitBtn = document.getElementById('saveCriteriaSubmitBtn');
+
+        // --- Get Modal Instances ---
+        const createUserModalEl = document.getElementById('createUserModal');
+        const createUserModalInstance = bootstrap.Modal.getOrCreateInstance(createUserModalEl);
+        const createPOrderCriteriaModalEl = document.getElementById('createPOrderCriteriaModal');
+        const createPOrderCriteriaModalInstance = bootstrap.Modal.getOrCreateInstance(createPOrderCriteriaModalEl);
+
+        // --- State ---
+        let currentCriteriaFilter = 'all'; // 'all', 'po', 'ats'
+        let allCriteriaData = []; // Cache criteria fetched from API
+
+        // --- Helper Functions ---
+        function escapeHTML(str) {
+             if (str === null || typeof str === 'undefined') return '';
+             const div = document.createElement('div');
+             div.textContent = str;
+             return div.innerHTML;
+        }
+
+        function showFlashMessage(message, category = 'info') {
+            if (!flashContainer) return;
+            const alertClass = `alert-${category}`;
+            const alertHtml = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    ${message} {# Assume safe HTML #}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>`;
+            flashContainer.insertAdjacentHTML('beforeend', alertHtml); // Append new message
+        }
+
+        function showAlert(alertElement, message, type = 'danger') {
+            if (!alertElement) return;
+            alertElement.className = `alert alert-${type}`; // Remove other classes like d-none
+            alertElement.innerHTML = escapeHTML(message); // Use escapeHTML for plain text error messages
+            alertElement.classList.remove('d-none');
+        }
+
+        function hideAlert(alertElement) {
+             if (!alertElement) return;
+             alertElement.classList.add('d-none');
+             alertElement.innerHTML = '';
+        }
+
+        function toggleButtonSpinner(button, showSpinner) {
+            const spinner = button.querySelector('.spinner-border');
+            if (!spinner) return;
+            if (showSpinner) {
+                spinner.classList.remove('d-none');
+                button.disabled = true;
+            } else {
+                spinner.classList.add('d-none');
+                button.disabled = false;
+            }
+        }
+
+        function updateDashboardCounts() {
+             // Fetch counts separately or update after loads
+             if (userCountEl) { // Get count from table rows
+                 const count = userTableBody.rows.length;
+                 // Check if the only row is the "loading" or "no users" row
+                 const placeholderRow = userTableBody.querySelector('td[colspan="4"]');
+                 userCountEl.textContent = placeholderRow ? 0 : count;
+             }
+             if (criteriaCountEl) { // Use cached data count
+                criteriaCountEl.textContent = allCriteriaData.length;
+             }
+        }
+
+        // --- Navigation ---
+        function showSection(targetId) {
+            contentSections.forEach(section => { section.classList.remove('active'); });
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                 targetSection.classList.add('active');
+                 // Load data when section becomes active
+                 if (targetId === 'users-section') loadUsers();
+                 if (targetId === 'porder-section') loadCriteria(); // Load all criteria initially
+            } else {
+                console.warn(`Section ${targetId} not found. Showing dashboard.`);
+                document.getElementById('dashboard-section')?.classList.add('active');
+            }
+            // Update active link in sidebar
+            sidebarLinks.forEach(link => {
+                 link.classList.toggle('active', link.getAttribute('data-target') === targetId);
+            });
+        }
+
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault();
+                const targetId = link.getAttribute('data-target');
+                if (targetId) {
+                    showSection(targetId);
+                    // Optionally update URL hash: window.location.hash = targetId;
+                }
+            });
+        });
+
+        // Event listeners for dashboard cards to navigate
+        document.querySelectorAll('.card button[data-target]').forEach(button => {
+            button.addEventListener('click', () => {
+                const targetId = button.getAttribute('data-target');
+                const navTargetId = button.getAttribute('data-nav-target'); // ID of the nav link
+                 if (targetId) {
+                    showSection(targetId);
+                }
+            });
+        });
+
+        // --- User Management ---
+        async function loadUsers() {
+            if (!userTableBody) return;
+            userTableBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-5"><div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading users...</td></tr>';
+            noUsersMessage.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/admin/users');
+                if (!response.ok) throw new Error(`Error loading users: ${response.statusText}`);
+                const users = await response.json();
+
+                userTableBody.innerHTML = ''; // Clear loading row
+                if (users && users.length > 0) {
+                    users.forEach(user => renderUserRow(user));
+                    noUsersMessage.style.display = 'none';
+                } else {
+                    noUsersMessage.style.display = 'block';
+                }
+                updateDashboardCounts();
+            } catch (error) {
+                console.error("Fetch users error:", error);
+                userTableBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-3">Failed to load users. Please try again.</td></tr>';
+                showFlashMessage(error.message, 'danger');
+                noUsersMessage.style.display = 'none';
+            }
+        }
+
+        function renderUserRow(user) {
+            const roleDisplay = (user.role || 'N/A').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            // Define badge classes based on role
+            let badgeClass = 'bg-secondary';
+            if (user.role === 'admin') badgeClass = 'bg-danger';
+            else if (user.role === 'subadmin') badgeClass = 'bg-warning text-dark';
+            else if (user.role === 'po_verifier') badgeClass = 'bg-info text-dark';
+            else if (user.role === 'ats_verifier') badgeClass = 'bg-success';
+
+            const row = `
+                <tr>
+                    <td>${escapeHTML(user.username)}</td>
+                    <td>${escapeHTML(user.email)}</td>
+                    <td><span class="badge ${badgeClass}">${escapeHTML(roleDisplay)}</span></td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-secondary me-1 btn-edit-user" data-email="${escapeHTML(user.email)}" title="Edit User (Not Implemented)" disabled>
+                            <i class="bi bi-pencil-square"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger btn-delete-user" data-email="${escapeHTML(user.email)}" title="Delete User">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            userTableBody.insertAdjacentHTML('beforeend', row);
+        }
+
+        createUserForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            hideAlert(userFormAlert);
+            if(privilegeFeedback) privilegeFeedback.classList.add('d-none');
+
+            const selectedPrivileges = Array.from(createUserForm.querySelectorAll('input[name="userPrivilege"]:checked')).map(cb => cb.value);
+
+            // Frontend validation
+            let isFormValid = createUserForm.checkValidity();
+            let arePrivilegesValid = selectedPrivileges.length > 0;
+
+            if (!isFormValid) {
+                createUserForm.classList.add('was-validated');
+            }
+            if (!arePrivilegesValid) {
+                 if(privilegeFeedback) privilegeFeedback.classList.remove('d-none');
+            }
+            if (!isFormValid || !arePrivilegesValid) {
+                 return; // Stop submission
+            }
+
+            createUserForm.classList.remove('was-validated'); // Reset validation state visually
+
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value; // Password required by API
+
+            toggleButtonSpinner(createUserSubmitBtn, true);
+
+            try {
+                const response = await fetch('/api/admin/users', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ username, email, password, privileges: selectedPrivileges })
+                });
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || `Request failed with status ${response.status}`);
+                }
+
+                createUserModalInstance.hide();
+                createUserForm.reset();
+                loadUsers(); // Refresh the table
+                showFlashMessage(`User '${escapeHTML(result.username)}' created successfully (Role: ${result.role}).`, 'success');
+
+            } catch (error) {
+                console.error("Create user error:", error);
+                showAlert(userFormAlert, error.message || "An unexpected error occurred.", 'danger');
+            } finally {
+                toggleButtonSpinner(createUserSubmitBtn, false);
+            }
+        });
+
+        // User Deletion (Event Delegation)
+        userTableBody.addEventListener('click', async (event) => {
+            const deleteButton = event.target.closest('.btn-delete-user');
+            if (deleteButton) {
+                const userEmail = deleteButton.dataset.email;
+                if (confirm(`Are you sure you want to delete user ${userEmail}? This action cannot be undone.`)) {
+                    toggleButtonSpinner(deleteButton, true); // Show spinner on button itself
+                    try {
+                        const response = await fetch(`/api/admin/users/${encodeURIComponent(userEmail)}`, { method: 'DELETE' });
+                        const result = await response.json();
+                        if (!response.ok) {
+                            throw new Error(result.error || `Failed to delete (${response.status})`);
+                        }
+                        loadUsers(); // Refresh table
+                        showFlashMessage(result.message || `User ${userEmail} deleted.`, 'success');
+                    } catch (error) {
+                        console.error("Delete user error:", error);
+                        showFlashMessage(`Error deleting user ${userEmail}: ${error.message}`, 'danger');
+                         toggleButtonSpinner(deleteButton, false); // Hide spinner on error
+                    }
+                     // No finally needed here as button is removed on success via loadUsers
+                }
+            }
+        });
+
+         // Reset modal on hide
+         createUserModalEl.addEventListener('hidden.bs.modal', () => {
+            createUserForm.reset();
+            createUserForm.classList.remove('was-validated');
+            hideAlert(userFormAlert);
+            if(privilegeFeedback) privilegeFeedback.classList.add('d-none');
+        });
+
+
+        // --- Criteria Management ---
+        async function loadCriteria() {
+             // Show loading placeholders
+             poCriteriaList.innerHTML = '<p class="text-center text-muted py-3 placeholder-glow"><span class="placeholder col-8"></span></p>';
+             atsCriteriaList.innerHTML = '<p class="text-center text-muted py-3 placeholder-glow"><span class="placeholder col-8"></span></p>';
+             noPoCriteriaMessage.style.display = 'none';
+             noAtsCriteriaMessage.style.display = 'none';
+             noCriteriaMessage.style.display = 'none';
+
+             try {
+                 const response = await fetch('/api/admin/criteria');
+                 if (!response.ok) throw new Error(`Error loading criteria: ${response.statusText}`);
+                 allCriteriaData = await response.json(); // Store fetched data
+
+                 renderCriteriaCards(); // Render based on current filter
+                 updateDashboardCounts();
+
+             } catch (error) {
+                 console.error("Fetch criteria error:", error);
+                 poCriteriaList.innerHTML = '<p class="text-center text-danger py-3">Failed to load PO criteria.</p>';
+                 atsCriteriaList.innerHTML = '<p class="text-center text-danger py-3">Failed to load ATS criteria.</p>';
+                 showFlashMessage(error.message, 'danger');
+             }
+        }
+
+        function renderCriteriaCards() {
+             poCriteriaList.innerHTML = '';
+             atsCriteriaList.innerHTML = '';
+             let poCount = 0;
+             let atsCount = 0;
+
+             const filteredData = allCriteriaData.filter(c =>
+                 currentCriteriaFilter === 'all' || c.type === currentCriteriaFilter
+             );
+
+             if (filteredData.length === 0 && allCriteriaData.length > 0){
+                 // Show message only if filter results in empty, but data exists
+                  noCriteriaMessage.style.display = 'block';
+             } else {
+                  noCriteriaMessage.style.display = 'none';
+             }
+
+
+             filteredData.forEach(criteria => {
+                 const targetList = criteria.type === 'po' ? poCriteriaList : atsCriteriaList;
+                 if (targetList) {
+                    renderCriteriaCard(targetList, criteria);
+                    if(criteria.type === 'po') poCount++;
+                    if(criteria.type === 'ats') atsCount++;
+                 }
+             });
+
+             // Show "No criteria" messages if lists are empty AFTER filtering
+             noPoCriteriaMessage.style.display = (currentCriteriaFilter === 'all' || currentCriteriaFilter === 'po') && poCount === 0 ? 'block' : 'none';
+             noAtsCriteriaMessage.style.display = (currentCriteriaFilter === 'all' || currentCriteriaFilter === 'ats') && atsCount === 0 ? 'block' : 'none';
+        }
+
+
+        function renderCriteriaCard(targetList, criteria) {
+            const roleBadgeClass = criteria.type === 'po' ? 'bg-info text-dark' : 'bg-success';
+            const roleBadgeText = criteria.type.toUpperCase();
+            const card = `
+                <div class="card mb-3 criteria-card" data-id="${escapeHTML(criteria.id)}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="card-title mb-1">${escapeHTML(criteria.name)}</h5>
+                                <small class="text-muted d-block mb-2">Field: ${escapeHTML(criteria.field)}</small>
+                            </div>
+                            <span class="badge ${roleBadgeClass} ms-2">${roleBadgeText}</span>
+                        </div>
+                        <p class="card-text mb-2"><strong>Rule:</strong> ${escapeHTML(criteria.rule)}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <p class="card-text mb-0"><small class="text-muted-light">Confidence: <strong>${escapeHTML(criteria.confidence)}%</strong></small></p>
+                            <div class="text-end">
+                                <button class="btn btn-sm btn-outline-secondary me-1 btn-edit-criteria" data-id="${escapeHTML(criteria.id)}" title="Edit Criteria (Not Implemented)" disabled>
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger btn-delete-criteria" data-id="${escapeHTML(criteria.id)}" title="Delete Criteria">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            targetList.insertAdjacentHTML('beforeend', card);
+        }
+
+        // Setup Add Criteria Modal based on button clicked
+        addCriteriaButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const criteriaType = button.dataset.criteriaType; // 'po' or 'ats'
+                const modalTitle = createPOrderCriteriaModalEl.querySelector('.modal-title');
+                const typeInput = document.getElementById('criteriaTypeInput');
+
+                if (modalTitle) modalTitle.textContent = `Add New ${criteriaType.toUpperCase()} Validation Criteria`;
+                if (typeInput) typeInput.value = criteriaType;
+
+                // Reset form validation state and any previous errors
+                createPOrderCriteriaForm.classList.remove('was-validated');
+                hideAlert(criteriaFormAlert);
+                createPOrderCriteriaForm.reset();
+                document.getElementById('aiConfidence').value = 90; // Reset default confidence
+            });
+        });
+
+        // Save Criteria Form Submission
+        createPOrderCriteriaForm.addEventListener('submit', async (event) => {
+             event.preventDefault();
+             event.stopPropagation();
+             hideAlert(criteriaFormAlert);
+
+             if (!createPOrderCriteriaForm.checkValidity()) {
+                 createPOrderCriteriaForm.classList.add('was-validated');
+                 return;
+             }
+             createPOrderCriteriaForm.classList.remove('was-validated');
+
+             const name = document.getElementById('criteriaName').value.trim();
+             const field = document.getElementById('fieldToExtract').value.trim();
+             const rule = document.getElementById('validationRule').value.trim();
+             const confidence = document.getElementById('aiConfidence').value;
+             const type = document.getElementById('criteriaTypeInput').value; // Get type ('po' or 'ats')
+
+             if (!type) {
+                showAlert(criteriaFormAlert, "Criteria type (PO/ATS) is missing. Please close and reopen the modal.", 'danger');
+                return;
+             }
+
+             toggleButtonSpinner(saveCriteriaSubmitBtn, true);
+
+             try {
+                 const response = await fetch('/api/admin/criteria', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ name, field, rule, confidence, type })
+                 });
+                 const result = await response.json();
+
+                 if (!response.ok) {
+                    throw new Error(result.error || `Failed to save criteria (${response.status})`);
+                 }
+
+                 createPOrderCriteriaModalInstance.hide();
+                 createPOrderCriteriaForm.reset();
+                 loadCriteria(); // Reload and re-render all criteria
+                 showFlashMessage(`${type.toUpperCase()} Criterion '${escapeHTML(result.name)}' saved successfully.`, 'success');
+
+             } catch (error) {
+                 console.error("Save criteria error:", error);
+                 showAlert(criteriaFormAlert, error.message || "An unexpected error occurred.", 'danger');
+             } finally {
+                toggleButtonSpinner(saveCriteriaSubmitBtn, false);
+             }
+        });
+
+         // Criteria Deletion (Event Delegation on parent lists)
+        [poCriteriaList, atsCriteriaList].forEach(list => {
+            if(list) {
+                list.addEventListener('click', async (event) => {
+                    const deleteButton = event.target.closest('.btn-delete-criteria');
+                    if (deleteButton) {
+                        const criteriaId = deleteButton.dataset.id;
+                        const card = deleteButton.closest('.criteria-card');
+                        const criteriaName = card ? card.querySelector('.card-title').textContent : criteriaId;
+
+                        if (confirm(`Are you sure you want to delete criterion "${criteriaName}"?`)) {
+                             toggleButtonSpinner(deleteButton, true);
+                             try {
+                                 const response = await fetch(`/api/admin/criteria/${criteriaId}`, { method: 'DELETE' });
+                                 const result = await response.json();
+                                 if (!response.ok) {
+                                    throw new Error(result.error || `Failed to delete (${response.status})`);
+                                 }
+                                 loadCriteria(); // Reload and re-render
+                                 showFlashMessage(result.message || `Criterion ${criteriaId} deleted.`, 'success');
+                             } catch (error) {
+                                 console.error("Delete criteria error:", error);
+                                 showFlashMessage(`Error deleting criterion: ${error.message}`, 'danger');
+                                  toggleButtonSpinner(deleteButton, false); // Only re-enable on error
+                             }
+                        }
+                    }
+                });
+            }
+        });
+
+        // Criteria Filter Radio Buttons
+        criteriaTypeFilterButtons.forEach(radio => {
+            radio.addEventListener('change', (event) => {
+                currentCriteriaFilter = event.target.value;
+                renderCriteriaCards(); // Re-render the cards based on the new filter
+            });
+        });
+
+         // Reset criteria modal on hide
+         createPOrderCriteriaModalEl.addEventListener('hidden.bs.modal', () => {
+            createPOrderCriteriaForm.reset();
+            createPOrderCriteriaForm.classList.remove('was-validated');
+            hideAlert(criteriaFormAlert);
+            document.getElementById('aiConfidence').value = 90; // Reset default
+            document.getElementById('criteriaTypeInput').value = ''; // Clear hidden type
+        });
+
+
+        // --- Initial Load ---
+        showSection('dashboard-section'); // Show dashboard by default
+        loadUsers(); // Load initial user count for dashboard card (async)
+        loadCriteria(); // Load initial criteria count & data cache (async)
+
+
+    }); // End DOMContentLoaded
+</script>
+
+</body>
+</html>
