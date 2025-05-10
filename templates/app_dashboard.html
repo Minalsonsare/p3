@@ -93,10 +93,12 @@
                         {% for filename, result_data in results.items() %}
                         <div class="result-container">
                             <h4 class="result-title">Results for: {{ filename }}</h4>
-                            {% if 'error' in result_data %}
+                                                        {% if 'error' in result_data %}
                                 <p class="error-message"><i class="fas fa-exclamation-triangle"></i> {{ result_data.error }}</p>
                             {% else %}
+                                {#
                                 <div class="mb-3"><h5><i class="fas fa-highlighter"></i> Extracted Text:</h5><pre>{{ result_data.extracted_text | default('N/A') }}</pre></div>
+                                #}
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <h5><i class="fas fa-project-diagram"></i> Extracted Data (Allowed Fields):</h5>
@@ -195,10 +197,12 @@
                         {% for filename, result_data in results.items() %}
                         <div class="result-container">
                              <h4 class="result-title">Results for: {{ filename }}</h4>
-                             {% if 'error' in result_data %}
+                                                                                    {% if 'error' in result_data %}
                                 <p class="error-message"><i class="fas fa-exclamation-triangle"></i> {{ result_data.error }}</p>
                              {% else %}
+                                {#
                                 <div class="mb-3"><h5><i class="fas fa-highlighter"></i> Extracted Text:</h5><pre>{{ result_data.extracted_text | default('N/A') }}</pre></div>
+                                #}
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <h5><i class="fas fa-project-diagram"></i> Extracted Data (Allowed Fields):</h5>
@@ -259,10 +263,12 @@
                         {% for filename, result_data in results.items() %}
                         <div class="result-container">
                              <h4 class="result-title">Results for: {{ filename }}</h4>
-                             {% if 'error' in result_data %}
+                                                        {% if 'error' in result_data %}
                                 <p class="error-message"><i class="fas fa-exclamation-triangle"></i> {{ result_data.error }}</p>
                              {% else %}
+                                {#
                                 <div class="mb-3"><h5><i class="fas fa-highlighter"></i> Extracted Text:</h5><pre>{{ result_data.extracted_text | default('N/A') }}</pre></div>
+                                #}
                                 <div class="row">
                                      <div class="col-md-6 mb-3">
                                         <h5><i class="fas fa-project-diagram"></i> Extracted Data (Allowed Fields):</h5>
