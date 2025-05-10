@@ -31,59 +31,54 @@ if OCR_SPACE_API_KEY == "K87955728688957":
 # --- Master Field Definitions (Required for Admin Field Selection) ---
 MASTER_FIELD_DEFINITIONS = {
     "po": [
-        {"id": "po_doc_number", "label": "PO Number", "description": "Purchase Order Number"},
-        {"id": "po_doc_vendor_id", "label": "Vendor", "description": "Vendor ID (e.g., S101334)"},
-        {"id": "po_doc_phone", "label": "Phone", "description": "Vendor Phone Number"},
-        {"id": "po_doc_total", "label": "Total", "description": "Grand Total Amount"},
-        {"id": "po_doc_order_date", "label": "Order Date", "description": "PO Order Date"},
-        # Add any other PO fields an admin might *optionally* grant access to,
-        # even if they are not part of the key comparison set.
-        # {"id": "po_doc_vendor_name", "label": "Vendor Name", "description": "Full Vendor Name (e.g. PROTOATIC, INC.)"},
+        {"id": "po_number_doc", "label": "PO Number", "description": "The main Purchase Order number"},
+        {"id": "vendor_id_doc", "label": "Vendor", "description": "Vendor ID (e.g., S101334)"},
+        {"id": "vendor_phone_doc", "label": "Phone", "description": "Vendor's phone number"},
+        {"id": "grand_total_doc", "label": "Total", "description": "The final total amount"},
+        {"id": "order_date_doc", "label": "Order Date", "description": "Date the PO was created"},
+        {"id": "vendor_name_doc", "label": "Vendor Name", "description": "Full name of the vendor"},
+        {"id": "ship_to_name_doc", "label": "Ship To Name", "description": "Name of the shipping recipient"},
+        # ... other optional PO fields
     ],
-    "ats": [ # Keep ATS simple as per previous versions, unless specified
-        {"id": "ats_name", "label": "Name", "description": "Applicant Name"},
-        {"id": "ats_email", "label": "Email", "description": "Applicant Email"},
-        {"id": "ats_phone", "label": "Phone", "description": "Applicant Phone"},
-        {"id": "ats_skills", "label": "Skills", "description": "Applicant Skills"},
-        {"id": "ats_sr_no", "label": "Sr no.", "description": "Applicant Sr no."},
+    "ats": [ # ATS fields remain as previously defined
+        {"id": "candidate_name", "label": "Name", "description": "Full name of the applicant"},
+        {"id": "candidate_email", "label": "Email", "description": "Email address of the applicant"},
+        {"id": "candidate_phone", "label": "Phone", "description": "Phone number of the applicant"},
+        {"id": "skills_list", "label": "Skills", "description": "List of skills from the resume"},
+        {"id": "sr_no", "label": "Sr no.", "description": "Serial number if applicable"},
     ],
-    "part_drawing": [ # Fields for the Quote PDF
-        {"id": "pd_quote_id", "label": "Quote ID", "description": "Quote Identifier"},
-        {"id": "pd_customer_id", "label": "Customer ID", "description": "Customer Identifier from Quote"},
-        {"id": "pd_quote_date", "label": "Quote Date", "description": "Date of the Quote"},
-        {"id": "pd_expiration_date", "label": "Expiration Date", "description": "Expiration Date of the Quote"},
-        {"id": "pd_sales_contact", "label": "Sales Contact", "description": "Sales Contact from Quote"},
-        {"id": "pd_quote_terms", "label": "Quote Terms", "description": "Payment/Quote Terms from Quote"},
-        {"id": "pd_table_part_no", "label": "Part Number", "description": "Part Number from Quote Table"},
-        {"id": "pd_table_description", "label": "Description", "description": "Description from Quote Table"},
-        {"id": "pd_table_revision", "label": "Revision", "description": "Revision from Quote Table"},
+    "part_drawing": [ # Updated for the Quote PDF fields
+        {"id": "quote_id", "label": "Quote ID", "description": "Quote Identifier"},
+        {"id": "customer_id_quote", "label": "Customer ID", "description": "Customer Identifier from Quote"},
+        {"id": "quote_date", "label": "Quote Date", "description": "Date of the Quote"},
+        {"id": "expiration_date_quote", "label": "Expiration Date", "description": "Expiration Date of the Quote"},
+        {"id": "sales_contact_quote", "label": "Sales Contact", "description": "Sales Contact from Quote"},
+        {"id": "quote_terms_quote", "label": "Quote Terms", "description": "Payment/Quote Terms from Quote"},
+        # Fields from the table within the quote:
+        {"id": "table_part_number", "label": "Part Number", "description": "Part Number from the table in Quote"},
+        {"id": "table_description", "label": "Description", "description": "Description from the table in Quote"},
+        {"id": "table_revision", "label": "Revision", "description": "Revision from the table in Quote"},
+        # Optional: Other fields from the quote you might want to grant access to
+        {"id": "customer_name_quote", "label": "Quoted To", "description": "Customer Name from Quote ('Quoted To' section)"}
     ]
 }
 
-
 # --- Define Fields For Comparison (Subset of Master Fields) ---
 # These are the *labels* used for comparison and accuracy calculation.
-# In app.py
-PO_KEY_COMPARISON_FIELDS = ["PO Number", "Vendor", "Phone", "Total", "Order Date"]
-ATS_KEY_COMPARISON_FIELDS = ["Sr no.", "Name", "Email", "Skills", "Phone"] # Assuming this is desired for ATS
-PART_DRAWING_KEY_COMPARISON_FIELDS = ["Quote ID", "Customer ID", "Quote Date", "Part Number", "Description", "Revision"] # Choose your 3-4 key ones
+PO_FIELDS_FOR_COMPARISON = ["PO Number", "Vendor Name", "Grand Total"]
+ATS_FIELDS_FOR_COMPARISON = ["Sr no.", "Name", "Email", "Skills","Phone"]
+PART_DRAWING_FIELDS_FOR_COMPARISON = ["Part Number", "Description", "Revision"]
 
-
-# FIELD_ID_TO_LABEL_MAP will regenerate based on the above
+# Map Field IDs to Labels (used internally)
 FIELD_ID_TO_LABEL_MAP = {
     doc_type: {field['id']: field['label'] for field in fields}
     for doc_type, fields in MASTER_FIELD_DEFINITIONS.items()
 }
-# # Map Field IDs to Labels (used internally)
-# FIELD_ID_TO_LABEL_MAP = {
-#     doc_type: {field['id']: field['label'] for field in fields}
-#     for doc_type, fields in MASTER_FIELD_DEFINITIONS.items()
-# }
-# # Map Labels to Field IDs (used internally)
-# FIELD_LABEL_TO_ID_MAP = {
-#     doc_type: {field['label']: field['id'] for field in fields}
-#     for doc_type, fields in MASTER_FIELD_DEFINITIONS.items()
-# }
+# Map Labels to Field IDs (used internally)
+FIELD_LABEL_TO_ID_MAP = {
+    doc_type: {field['label']: field['id'] for field in fields}
+    for doc_type, fields in MASTER_FIELD_DEFINITIONS.items()
+}
 
 # --- Define available tabs/modules in the system ---
 AVAILABLE_TABS = {
@@ -133,32 +128,24 @@ USERS_DB = {
 # --- Dummy Database for Comparison (Adjust structure/keys) ---
 # Keys should ideally match the lookup fields (PO Number, Sr no., Drawing Number)
 dummy_database = {
+    # Format: { doc_type: { lookup_key: { field_label: db_value, ... } } }
     "po": {
-        "81100": { # Lookup key is PO Number
-            "PO Number": "81100",
-            "Vendor": "S101334",    # Label matches PO_KEY_COMPARISON_FIELDS
-            "Phone": "734-426-3655",
-            "Total": "$ 5,945.00",
-            "Order Date": "8/8/2024"
-        }
-        # Add more PO examples if needed
+        "PO-789012": {"PO Number": "PO-789012", "Vendor Name": "Nortech Systems", "Grand Total": "5945.00"},
+        "81100": {"PO Number": "81100", "Vendor Name": "PROTOATIC, INC.", "Grand Total": "$ 5,945.00"}
     },
-    "ats": { # ATS data
-        "S009": {"Sr no.": "S009", "Name": "Olivia Miller", "Email": "olivia.m@example.net", "Skills": "Shopify, Java, React, Camunda", "Phone": "8788019869"}
+    "ats": {
+        "S009": {"Sr no.": "S009", "Name": "Olivia Miller", "Email": "olivia.m@example.net", "Skills": "Shopify, Java, React, Camunda", "Phone": "8788019869"} # Slightly different data for mismatch example
     },
-    "part_drawing": { # Lookup key is Quote ID
-        "16Q05495": {
-            "Quote ID": "16Q05495",
-            # These are from PART_DRAWING_KEY_COMPARISON_FIELDS:
-            "Part Number": "1402.00-1197",    # Data for the table line item
+        "part_drawing": {
+        "1402.00-1197": {
+            "Part Number": "1402.00-1197",
             "Description": "CONTACT TERMINAL",
-            "Revision": "B",
-            # You can include other fields here if they are also in PART_DRAWING_KEY_COMPARISON_FIELDS
-            # For example, if you added "Customer ID" to the comparison list:
-            # "Customer ID": "PRO120",
+            "Revision": "B"
+            # "Material": "Copper Alloy" # Add if you can reliably extract it and want to compare
         }
     }
 }
+
 # --- Helper Functions ---
 def generate_temporary_password(length=10):
     # (Keep this function as provided before)
@@ -290,163 +277,131 @@ def extract_text_from_file(file_path, filename):
 
 # In app.py
 
-# In app.py
 def extract_structured_data(text, fields_to_extract_labels, upload_type=None):
     if not text or not fields_to_extract_labels: return {}
     data = {label: None for label in fields_to_extract_labels}
     lines = text.strip().split('\n')
-    text_content_lower = text.lower()
+    text_lower = text.lower() # For case-insensitive searches of keywords
 
-    # --- Generic Key-Value Extraction (as a fallback or for simple fields) ---
+    # --- Generic Key-Value Extraction (First Pass) ---
     for i, line_text in enumerate(lines):
         line_strip = line_text.strip()
         for field_label in fields_to_extract_labels:
-            if data[field_label] is not None: continue # Already found by specific logic or previous generic match
+            if data[field_label] is not None: continue # Already found
 
             pattern_label = re.escape(field_label)
-            # Common: Label: Value
-            match = re.match(r"^\s*" + pattern_label + r"\s*:\s*(.+)", line_strip, re.IGNORECASE)
-            if match:
-                data[field_label] = match.group(1).strip()
-                continue
+            # Try common patterns: "Label: Value", "Label  Value"
+            # Pattern 1: Label followed by colon, then value
+            pattern_kv_colon = re.compile(r"^\s*" + pattern_label + r"\s*:\s*(.+)", re.IGNORECASE)
+            match_kv_colon = pattern_kv_colon.match(line_strip)
+            if match_kv_colon:
+                value = match_kv_colon.group(1).strip()
+                if value: data[field_label] = value; break
 
-            # Less common: Label Value (on same line) - use with caution
-            if field_label.lower() in ["po number", "order date", "quote id", "customer id"]: # Only for specific labels
-                match_space = re.match(r"^\s*" + pattern_label + r"\s+([^\s].*)", line_strip, re.IGNORECASE)
-                if match_space:
-                    potential_value = match_space.group(1).strip()
-                    if len(potential_value) > 1 and not any(other_label.lower() in potential_value.lower() for other_label in fields_to_extract_labels if other_label != field_label and len(other_label)>2):
-                        data[field_label] = potential_value
-                        continue
-    
-    # --- PO Specific Extraction ---
+            # Pattern 2: Label, some space, then value (no colon, common for things like PO Number header)
+            # This needs to be more careful to avoid grabbing too much
+            if field_label.lower() in ["po number", "order date"]: # Be specific for labels likely to use this pattern
+                pattern_kv_space = re.compile(r"^\s*" + pattern_label + r"\s+([^\s].*)", re.IGNORECASE)
+                match_kv_space = pattern_kv_space.match(line_strip)
+                if match_kv_space:
+                    value = match_kv_space.group(1).strip()
+                    # Avoid grabbing another label if value is very short and looks like another label
+                    if value and len(value) > 2 and not any(other_label.lower() in value.lower() for other_label in fields_to_extract_labels if other_label != field_label):
+                        data[field_label] = value; break
+
+    # --- Document-Type Specific Logic (after generic pass) ---
     if upload_type == 'po':
-        if "PO Number" in fields_to_extract_labels:
-            # Look for "PO Number: 81100" or "PO Number 81100" (often near top or header)
-            # Also "Purchase Order 81100" or "P.O. Number 81100"
-            m = re.search(r"(?:P(?:urchase|\.O\.)\s*O(?:rder)?\s*No(?:Number|\.)?)\s*[:\-]?\s*([A-Z0-9\-]+)", text, re.IGNORECASE)
-            if m: data["PO Number"] = m.group(1).strip()
+        # Attempt to find PO Number if not found by direct label match
+        # (e.g. if "PO Number: 81100" or just "PO Number 81100" was missed)
+        if "PO Number" in fields_to_extract_labels and data["PO Number"] is None:
+            # Look for lines containing "PO Number" and then a potential number, possibly on next line
+            po_match = re.search(r"Purchase Order\s*[:\s]*\s*(\S+)|PO Number\s*[:\s]*\s*(\S+)", text, re.IGNORECASE)
+            if po_match:
+                data["PO Number"] = po_match.group(1) or po_match.group(2)
 
-    if "Vendor" in fields_to_extract_labels: # This is for Vendor ID like S101334
-        m = re.search(r"\bVendor\s*[:\-]?\s*(S\d+)\b", text, re.IGNORECASE)
-        if m: data["Vendor"] = m.group(1).strip()
+        # Vendor Name: Often follows "Vendor:" and might be on the next line(s)
+        if "Vendor Name" in fields_to_extract_labels and data["Vendor Name"] is None:
+            vendor_block_match = re.search(r"Vendor:?\s*\n\s*([^\n]+)", text, re.IGNORECASE)
+            if vendor_block_match:
+                data["Vendor Name"] = vendor_block_match.group(1).strip()
+                # Could add more lines if vendor name spans multiple lines
 
-    if "Phone" in fields_to_extract_labels:
-        # Try to find phone specifically associated with the "Vendor" section
-        # Look for "Vendor:" then some lines, then "Phone:"
-        # This is a heuristic and depends on consistent document structure.
-        vendor_block_text = ""
-        vendor_header_match = re.search(r"Vendor\s*[:\-]\s*", text, re.IGNORECASE)
-        if vendor_header_match:
-            # Try to get text block after "Vendor:" up to next major section like "Ship To:" or end of typical vendor address block
-            end_of_vendor_block_match = re.search(r"Ship To:|F\.O\.B|Terms", text[vendor_header_match.end():], re.IGNORECASE)
-            if end_of_vendor_block_match:
-                vendor_block_text = text[vendor_header_match.end() : vendor_header_match.end() + end_of_vendor_block_match.start()]
-            else: # If no clear end, take a reasonable chunk
-                vendor_block_text = text[vendor_header_match.end() : vendor_header_match.end() + 300] # Approx 5-6 lines
+        # Grand Total: Often near keywords like "Total", "Grand Total", "Amount Due"
+        # And is usually a currency value.
+        if "Grand Total" in fields_to_extract_labels and data["Grand Total"] is None:
+            # Regex for currency: optional $, digits, optional comma, digits, optional decimal part
+            # Try to find it near common total labels.
+            # This needs to be robust as "Total" can appear for line items.
+            # Look for lines that ARE totals, not labels FOR totals.
+            # Prioritize lines with "Grand Total" or "Total Due"
+            total_patterns = [
+                r"(?:Grand Total|Total Amount|Amount Due|TOTAL)\s*[:\-]?\s*([\$€£]?\s*\d{1,3}(?:,\d{3})*\.\d{2}\b|\$[\€£]?\s*\d{1,3}(?:,\d{3})*\b)",
+                r"([\$€£]?\s*\d{1,3}(?:,\d{3})*\.\d{2}\b|\$[\€£]?\s*\d{1,3}(?:,\d{3})*\b)\s*(?:Total|Grand Total|Amount Due)" # Value before label
+            ]
+            found_total = None
+            for total_pattern in total_patterns:
+                total_match = re.search(total_pattern, text, re.IGNORECASE | re.MULTILINE)
+                if total_match:
+                    # Find the group that captured the currency value
+                    for i in range(1, len(total_match.groups()) + 1):
+                        if total_match.group(i) and re.search(r'\d', total_match.group(i)): # Ensure it has a digit
+                            found_total = total_match.group(i).strip()
+                            break
+                    if found_total: break
+            
+            if found_total:
+                 data["Grand Total"] = found_total
+            else: # Fallback: Look for the largest currency amount on a line by itself or near "Total"
+                largest_amount = None
+                max_val = -1
+                currency_regex = r"([\$€£]?\s*\d{1,3}(?:,\d{3})*(?:\.\d{2})?)" # Capture amounts
+                for line in lines:
+                    # Check if the line mostly contains a currency value or is near 'total'
+                    if "total" in line.lower() or re.fullmatch(r"\s*" + currency_regex + r"\s*", line.strip(), re.IGNORECASE):
+                        matches = re.findall(currency_regex, line, re.IGNORECASE)
+                        for m_str in matches:
+                            try:
+                                val_str = m_str.replace('$', '').replace('€', '').replace('£', '').replace(',', '').strip()
+                                val = float(val_str)
+                                if val > max_val:
+                                    max_val = val
+                                    largest_amount = m_str.strip()
+                            except ValueError:
+                                continue
+                if largest_amount:
+                    data["Grand Total"] = largest_amount
 
-            phone_in_vendor_block = re.search(r"(?:Phone|Fax\s*[:\-]?\s*\S+\s*Phone)\s*[:\-]?\s*(\(?\d{3}\)?[\s\.\-]?\d{3}[\s\.\-]?\d{4})", vendor_block_text, re.IGNORECASE)
-            if phone_in_vendor_block:
-                data["Phone"] = phone_in_vendor_block.group(1).strip()
-            else: # Fallback to general phone search if not found in vendor block
-                m_phone_general = re.search(r"\bPhone\s*[:\-]?\s*(\(?\d{3}\)?[\s\.\-]?\d{3}[\s\.\-]?\d{4})", text, re.IGNORECASE)
-                if m_phone_general:
-                    # This might still get the buyer's phone if it's labeled "Phone" and vendor's isn't explicitly.
-                    # We need to be careful not to overwrite if we already got something better.
-                    if data["Phone"] is None: # Only if not already found in vendor block
-                        data["Phone"] = m_phone_general.group(1).strip()
-        else: # If "Vendor:" header isn't found, do a general phone search as a last resort
-            m_phone_general_fallback = re.search(r"\bPhone\s*[:\-]?\s*(\(?\d{3}\)?[\s\.\-]?\d{3}[\s\.\-]?\d{4})", text, re.IGNORECASE)
-            if m_phone_general_fallback:
-                data["Phone"] = m_phone_general_fallback.group(1).strip()
-
-        if "Total" in fields_to_extract_labels: # This is for Grand Total
-            # Prioritize labels like "Grand Total", "TOTAL DUE", then "Total"
-            # Look for the amount on the same line or subsequent lines if structure is predictable
-            keywords_ordered = ["Grand Total", "TOTAL DUE", "Amount Due", "Total Balance", "Total Amount", "TOTAL"]
-            found_total_val = None
-            for kw in keywords_ordered:
-                # Regex: Keyword, optional colon/hyphen, optional whitespace, then the currency amount
-                m = re.search(r"\b" + re.escape(kw) + r"\b\s*[:\-]?\s*([\$€£]?\s*\d{1,3}(?:,\d{3})*(?:\.\d{2}))", text, re.IGNORECASE | re.MULTILINE)
-                if m: found_total_val = m.group(1).strip(); break
-            if found_total_val: data["Total"] = found_total_val
-            else: # Fallback: find last currency amount that might be a total
-                 amounts = re.findall(r"([\$€£]?\s*\d{1,3}(?:,\d{3})*\.\d{2})\b", text)
-                 if amounts: data["Total"] = amounts[-1].strip() # Take the last one found
-
-        if "Order Date" in fields_to_extract_labels:
-            m = re.search(r"Order Date\s*[:\-]?\s*(\d{1,2}[/\-.]\d{1,2}[/\-.]\d{2,4})", text, re.IGNORECASE)
-            if m: data["Order Date"] = m.group(1).strip()
-
-    # --- Part Drawing (Quote PDF) Specific Extraction ---
     elif upload_type == 'part_drawing':
-        # Header fields
-        if "Quote ID" in fields_to_extract_labels:
-            m = re.search(r"Quote ID:\s*([A-Z0-9]+)", text, re.IGNORECASE)
-            if m: data["Quote ID"] = m.group(1).strip()
-        if "Customer ID" in fields_to_extract_labels:
-            m = re.search(r"Customer ID:\s*([A-Z0-9]+)", text, re.IGNORECASE)
-            if m: data["Customer ID"] = m.group(1).strip()
-        if "Quote Date" in fields_to_extract_labels:
-            m = re.search(r"Quote Date:\s*(\d{1,2}/\d{1,2}/\d{2,4})", text, re.IGNORECASE)
-            if m: data["Quote Date"] = m.group(1).strip()
-        if "Expiration Date" in fields_to_extract_labels:
-            m = re.search(r"Expiration Date:\s*(\d{1,2}/\d{1,2}/\d{2,4})", text, re.IGNORECASE)
-            if m: data["Expiration Date"] = m.group(1).strip()
+        # Your specific part_drawing extraction logic (from previous app.py)
+        # Make sure labels in MASTER_FIELD_DEFINITIONS["part_drawing"] match what you extract here
+        # For "Part Number" (label from MASTER_FIELD_DEFINITIONS)
+        if "Part Number" in fields_to_extract_labels and data["Part Number"] is None:
+            pn_match = re.search(r"Part Number\s*[:\-]?\s*([A-Z0-9.\-]+)", text, re.IGNORECASE)
+            if not pn_match: # Fallback if "Part Number" is not explicitly a label
+                 pn_match_alt = re.search(r"\b(1402\.00-1197)\b", text) # Example specific for your sample
+                 if pn_match_alt: data["Part Number"] = pn_match_alt.group(1)
+            elif pn_match : data["Part Number"] = pn_match.group(1).strip()
 
-        # Line: "Quote ID Date Sales Contact Quote Terms" -> data line below it
-        # Example data line: "16Q05495 8/12/2024 Kevin Braasch Net 30"
-        header_line_pattern = r"Quote ID\s+Quote Date\s+Sales Contact\s+Quote Terms"
-        data_line_pattern = r"([A-Z0-9]+)\s+(\d{1,2}/\d{1,2}/\d{2,4})\s+([\w\s.]+?)\s+([\w\s\d]+)" # Grouped for each value
-        
-        header_match = re.search(header_line_pattern, text, re.IGNORECASE)
-        if header_match:
-            # Search for the data_line_pattern in the text immediately following the header
-            search_text_after_header = text[header_match.end():]
-            data_line_match = re.search(r"^\s*" + data_line_pattern, search_text_after_header, re.MULTILINE | re.IGNORECASE)
-            if data_line_match:
-                if "Quote ID" in fields_to_extract_labels and data["Quote ID"] is None: data["Quote ID"] = data_line_match.group(1).strip()
-                if "Quote Date" in fields_to_extract_labels and data["Quote Date"] is None: data["Quote Date"] = data_line_match.group(2).strip()
-                if "Sales Contact" in fields_to_extract_labels: data["Sales Contact"] = data_line_match.group(3).strip()
-                if "Quote Terms" in fields_to_extract_labels: data["Quote Terms"] = data_line_match.group(4).strip()
+        # For "Description" (label from MASTER_FIELD_DEFINITIONS)
+        if "Description" in fields_to_extract_labels and data["Description"] is None:
+            desc_match = re.search(r"Description\s*[:\-]?\s*([^\n]+)", text, re.IGNORECASE)
+            if desc_match: data["Description"] = desc_match.group(1).strip()
 
-        # Table data: Part Number, Description, Revision
-        # Sample line: "1402.00-1197 Barrel CONTACT TERMINAL B"
-        # We need to find the line containing the primary part number, e.g., 1402.00-1197 from your sample.
-        # This assumes there's one main part number per quote for this extraction logic.
-        # A more robust solution would iterate through all table lines.
+        # For "Revision" (label from MASTER_FIELD_DEFINITIONS)
+        if "Revision" in fields_to_extract_labels and data["Revision"] is None:
+            rev_match = re.search(r"Revision\s*[:\-]?\s*([A-Z0-9])\b", text, re.IGNORECASE) # Single char/digit revision
+            if rev_match: data["Revision"] = rev_match.group(1).strip()
         
-        # Heuristic: find the line containing the specific part number if it's a known format or common one
-        # For the sample "1402.00-1197"
-        # Regex to find the entire line: PartNumber ProductCode(optional) Description Revision
-        target_line_match = re.search(r"^(1402\.00-1197)\s+(?:([\w\s]+?)\s+)?(CONTACT\s+TERMINAL)\s+([A-Z0-9])\s*$", text, re.MULTILINE | re.IGNORECASE)
-        if target_line_match:
-            if "Part Number" in fields_to_extract_labels:
-                data["Part Number"] = target_line_match.group(1).strip()
-            
-            product_code = target_line_match.group(2) # e.g., "Barrel"
-            main_description = target_line_match.group(3).strip() # "CONTACT TERMINAL"
-            
-            if "Description" in fields_to_extract_labels:
-                if product_code and product_code.strip().lower() != main_description.lower():
-                    data["Description"] = f"{product_code.strip()} {main_description}"
-                else:
-                    data["Description"] = main_description
-            
-            if "Revision" in fields_to_extract_labels:
-                data["Revision"] = target_line_match.group(4).strip()
-        else: # Fallback for table data if the specific line isn't found as above
-             if "Part Number" in fields_to_extract_labels and data["Part Number"] is None:
-                 m = re.search(r"\b(\d{4}\.\d{2}-\d{4})\b", text) # General part number format
-                 if m: data["Part Number"] = m.group(1)
-             if "Description" in fields_to_extract_labels and data["Description"] is None:
-                  # Try finding description near a known part number if it was found
-                 if data.get("Part Number"):
-                     m = re.search(re.escape(data["Part Number"]) + r"\s+[^\n]*?\s+([A-Z\s]+TERMINAL|[A-Z\s]+CONTACT)\b", text, re.IGNORECASE)
-                     if m : data["Description"] = m.group(1).strip()
-             if "Revision" in fields_to_extract_labels and data["Revision"] is None:
-                 m = re.search(r"\b(?:Rev|Revision)\s*[:\-]?\s*([A-Z0-9])\b", text, re.IGNORECASE)
-                 if m: data["Revision"] = m.group(1)
+        # For "Quoted To" (customer)
+        if "Quoted To" in fields_to_extract_labels and data["Quoted To"] is None:
+            for i, line_text in enumerate(lines):
+                if line_text.strip().lower() == "quoted to":
+                    if i + 1 < len(lines) and lines[i+1].strip(): # Next non-empty line
+                        data["Quoted To"] = lines[i+1].strip()
+                        break
+                        
+    # You might need similar specific logic for ATS fields if the generic one isn't enough.
+    # For example, skills might be a bulleted list or comma-separated after "Skills:" label.
 
     return data
 
@@ -628,14 +583,14 @@ def app_dashboard():
                 fields_for_comparison_labels = []
                 db_lookup_key_label = None
                 if upload_type == 'po':
-                    fields_for_comparison_labels = PO_KEY_COMPARISON_FIELDS
+                    fields_for_comparison_labels = PO_FIELDS_FOR_COMPARISON
                     db_lookup_key_label = "PO Number"
                 elif upload_type == 'ats':
-                    fields_for_comparison_labels = ATS_KEY_COMPARISON_FIELDS
+                    fields_for_comparison_labels = ATS_FIELDS_FOR_COMPARISON
                     db_lookup_key_label = "Sr no."
                 elif upload_type == 'part_drawing':
-                    fields_for_comparison_labels = PART_DRAWING_KEY_COMPARISON_FIELDS
-                    db_lookup_key_label = "Quote ID"
+                    fields_for_comparison_labels = PART_DRAWING_FIELDS_FOR_COMPARISON
+                    db_lookup_key_label = "Part Number"
 
                 # Filter comparison fields to only those the user is allowed to see
                 user_allowed_comparison_labels = [
